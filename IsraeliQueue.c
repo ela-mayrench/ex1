@@ -153,14 +153,25 @@ IsraeliQueueError IsraeliQueueEnqueue(IsraeliQueue queue, void * new_person){
         }
         temp = temp->next;
     }
+    if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND){
+        if(temp->friends_num<MAX_FRIENDS){
+            temp->friends_num++;
+            temp->next = new_person;
+        }
+        else{
+            temp->next = new_person;
+        }
 
-    if(spot==NULL){
-        temp->next = new_person;
-        return ISRAELIQUEUE_SUCCESS;
     }
     else{
-        AddToSpot(spot,new_person);
+        if(spot==NULL){
+        temp->next = new_person;
         return ISRAELIQUEUE_SUCCESS;
+        }
+        else{
+            AddToSpot(spot,new_person);
+            return ISRAELIQUEUE_SUCCESS;
+        }
     }
     return ISRAELI_QUEUE_ERROR;
 }
@@ -199,4 +210,82 @@ int IsraeliQueueSize(IsraeliQueue queue){
         temp=temp->next;
     }
     return length;
+}
+
+void* IsraeliQueueDequeue(IsraeliQueue queue){
+    if (queue == NULL || queue->person == NULL){
+        return NULL;
+    }
+    PersonLine* temp = queue->person;
+    temp->next = NULL;    
+    queue->person = queue->person->next;
+    //the personis out of the line so its friends and enemy count becomes 0
+    temp->friends_num=0;
+    temp->enemy_num=0;
+    return temp;
+    
+}
+
+//finds the location of a person in queue, if not exists returns null
+IsraeliQueue FindPersonInQueue(IsraeliQueue queue, void * person1){
+    if (queue == NULL || queue->person == NULL || person1 == NULL){
+        return NULL;
+    }
+    while(queue->person->next != NULL){
+        //if person is in queue
+        if(queue->compare_func(person1, queue->person)){
+            return queue->person;
+        }
+    }
+    return NULL;
+}
+
+bool IsraeliQueueContains(IsraeliQueue queue, void * person1){
+    if(FindPersonInQueue(queue,person1)==NULL){
+        return false;
+    }
+    else
+        return true;
+}
+
+//build backwards queue
+PersonLine BuildBackwardsLine(IsraeliQueue queue){
+    IsraeliQueue new_queue = IsraeliQueueClone(queue);
+    PersonLine* backwards_line;
+    PersonLine* temp = IsraeliQueueDequeue(new_queue);
+    while (new_queue->person != NULL){
+        backwards_line = temp;
+        temp = IsraeliQueueDequeue(new_queue);
+        temp->next=backwards_line;
+    }
+    backwards_line = temp;
+    return backwards_line;
+}
+
+//accepts the queue and a pointer to person (not in queue) to remove
+PersonLine RemoveFromQueue(IsraeliQueue queue, PersonLine person1){
+    IsraeliQueue spot = FindPersonInQueue(queue,person1); //points at the person to remove location
+    if(spot != NULL){
+        IsraeliQueue temp = spot->next; //save the pointer to after spot
+        spot->next = NULL;
+        PersonLine before = queue->person; //pointer to find the person before the person to remove, found in loop
+        while(!queue->compare_func(before->next,spot)){
+            before=before->next;
+        }
+        before->next=temp;
+    }
+    return spot;
+}
+
+IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue queue){
+   PersonLine backwards_line = BuildBackwardsLine(queue);
+   while(backwards_line != NULL){
+        PersonLine improve_p = IsraeliQueueDequeue(backwards_line);
+        PersonLine removed = RemoveFromQueue(queue,improve_p);
+        IsraeliQueueError error = IsraeliQueueEnqueue(queue,removed);
+        if(error != ISRAELIQUEUE_SUCCESS){
+            return error;
+        }
+   }
+   return ISRAELIQUEUE_SUCCESS;
 }
