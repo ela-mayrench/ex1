@@ -178,7 +178,7 @@ int AreFriends(PersonLine person1, PersonLine person2, FriendshipFunction * frie
             i++; //continue to next func
         }
     }
-    if(func_num==0)
+    if(func_num==0 || friendship_func == NULL || friendship_func[0] == NULL)
     {
         return NUTRAL;
     }
@@ -556,4 +556,19 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* arr_q,ComparisonFunction compare_fu
     return merged_queue;
 
 
+}
+
+int FindPlaceInQueue(IsraeliQueue queue, void* item){
+    PersonLine temp = queue->person;
+    int num_in_line=0;
+    while(temp!=NULL){
+        if(queue->compare_func(temp->item,item) != SAME){
+            num_in_line++;  
+            temp=temp->next;
+        }
+        else{
+            break;
+        }
+    }
+    return num_in_line;
 }
