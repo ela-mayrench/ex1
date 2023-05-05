@@ -298,7 +298,7 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
     if(temp!=NULL)
     {
         //if(spot!=NULL&& queue->compare_func(temp,spot)&&temp->serial_num==spot->serial_num){}
-        if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND && spot==NULL){
+        if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND){
             if(temp->friends_num<MAX_FRIENDS){
                 temp->friends_num++;
                 temp->next = new_person;
