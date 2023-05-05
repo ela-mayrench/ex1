@@ -474,7 +474,7 @@ char* CourseQueueToString(Course course){
 //this func is not finished!!!!!
 //add friendship functions to each queue,
 //write to file
-void hackEnrollment(EnrollmentSystem sys, FILE* out){
+/*void hackEnrollment(EnrollmentSystem sys, FILE* out){
     int i=0;
     bool hacker_success=true;
     Hacker* hacker_arr=sys->hacker_arr;
@@ -514,4 +514,79 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
     else{
         //write to OUT queue
     }
+}*/
+
+
+void hackEnrollment(EnrollmentSystem sys, FILE* out){
+    int i=0;
+    Hacker* hacker_arr=sys->hacker_arr;
+    //this while go over the hackers
+    while (hacker_arr[i]!=NULL){
+        int j=0;
+        //this while go over the list of wanted courses for curr hacker and enqueue him to the course_queue.
+        while (hacker_arr[i]->course_num[j]!=NULL)
+        {
+            Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
+            if(curr_course==NULL){
+
+            }
+            else{
+                int error=IsraeliQueueEnqueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student);
+                if (error!=ISRAELIQUEUE_SUCCESS){
+
+                }
+            j++;
+            }
+        }
+        i++;
+    }
+
+    //again a while for the hackers and a while for the courses, this time we check each hacker location in the waiting list
+    int i=0;
+    while (hacker_arr[i]!=NULL){
+        int j=0;
+        bool hacker_success=true;
+        //this while go over the list of wanted courses for curr hacker and enqueue him to the course_queue.
+        while (hacker_arr[i]->course_num[j]!=NULL && hacker_success)
+        {
+            int success_num=0;
+            int place_in_line=0;
+            Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
+            if(curr_course==NULL){
+
+            }
+            else{
+                Course temp_course = IsraeliQueueClone(curr_course);
+                Student temp_student = IsraeliQueueDeueue(temp_course);
+                while (temp_student!=NULL)
+                {
+                    if(!curr_course->compare_func(temp->student,hacker_arr[i]->student_as_hacker))
+                        {
+                            place_in_line++;
+                        }
+                    else
+                    {
+                        if(place_in_line<curr_course[i]->size)
+                        {
+                            success_num++;
+                        }
+                    }
+                }
+                
+            }
+            
+
+        }
+    }
 }
+
+
+    //this was in the previos func and I didnt want to delete it
+    if(!hacker_success){
+        char* output1= "Cannot satisfy constraints for ";
+        char* output2= hacker_arr[i]->id;
+            //write Cannot satisfy constraints for <student ID>
+    }
+    else{
+        //write to OUT queue
+    }
