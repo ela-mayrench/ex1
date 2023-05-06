@@ -500,7 +500,8 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
             }
         }
         i++;
-    }
+    } 
+    
 
     //again a while for the hackers and a while for the courses, this time we check each hacker location in the waiting list 
     //to see if all hackers made it to their desired course
