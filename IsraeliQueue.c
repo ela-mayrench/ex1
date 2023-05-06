@@ -245,16 +245,20 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
     while(temp->next!=NULL){
         int relationship = AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th);
         //find first friend & check if the friend has spots available
-        if (relationship == FRIEND && temp->friends_num<MAX_FRIENDS && !found_friend){
-            spot = temp; //potential person to put person after
-            found_friend = true;
+        if (relationship == FRIEND && temp->friends_num<MAX_FRIENDS){
+            if(!found_friend)
+            {
+                spot = temp; //potential person to put person after
+                found_friend = true;
+            }
+
         }
-        else if (relationship == NUTRAL || temp->friends_num>=MAX_FRIENDS || found_friend){
+        else if (relationship == NUTRAL || temp->friends_num>=MAX_FRIENDS ){
             temp = temp->next;
             continue;
         }
             //find next enemy
-        else if (relationship == ENEMY){
+        else if (relationship == ENEMY && found_friend){
             if(temp->enemy_num < MAX_ENEMIES){ //enemy can block
                 found_friend = false;
                 temp->enemy_num++;
@@ -298,7 +302,7 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
     if(temp!=NULL)
     {
         //if(spot!=NULL&& queue->compare_func(temp,spot)&&temp->serial_num==spot->serial_num){}
-        if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND){
+        if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND && spot==NULL){
             if(temp->friends_num<MAX_FRIENDS){
                 temp->friends_num++;
                 temp->next = new_person;
