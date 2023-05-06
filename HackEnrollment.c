@@ -441,7 +441,6 @@ int IdFriendshipFunction(Hacker hacker, Student student){
 //end of friendship functions
 ///////////////
 
-//check func when not tired
 char* CourseQueueToString(Course course){
     int course_size = IsraeliQueueSize(course->course_queue);
     int line_str_len=strlen(course->course_num);
@@ -451,70 +450,28 @@ char* CourseQueueToString(Course course){
         line_str_len+=strlen(curr_student->id);
         line_str_len++; //another spot for ' ' (space)
     }
-    line_str_len++;//another spot for \0
+    //line_str_len++;//another spot for \n
     IsraeliQueueDestroy(temp_queue);
 
     char* str_line = (char*)malloc(sizeof(char)*line_str_len);
     IsraeliQueue temp_queue = IsraeliQueueClone(course->course_queue);
     strcpy(str_line,course->course_num);
-    int str_location=strlen(course->course_num);;
+    int str_location=strlen(course->course_num);
+    str_line[str_location]=' ';
+    str_location++;
     for (int i = 0; i < course_size; i++){
         Student curr_student = IsraeliQueueDequeue(temp_queue);
         strcpy(str_line[str_location],curr_student->id);
         str_location+=strlen(curr_student->id);
-        str_location++;
         str_line[str_location]=' ';
+        str_location++;
     }
-    str_line[line_str_len]='\n';
+
+    str_line[line_str_len]='\0';
+    //str_line[line_str_len]='\n';
     IsraeliQueueDestroy(temp_queue);
     return str_line;
 }
-
-
-//this func is not finished!!!!!
-//add friendship functions to each queue,
-//write to file
-/*void hackEnrollment(EnrollmentSystem sys, FILE* out){
-    int i=0;
-    bool hacker_success=true;
-    Hacker* hacker_arr=sys->hacker_arr;
-    while (hacker_arr[i]!=NULL){
-        int j=0;
-        int success_num=0;
-        while (hacker_arr[i]->course_num[j]!=NULL && hacker_success)
-        {
-            Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
-            if(curr_course==NULL){
-
-            }
-            else{
-                int error=IsraeliQueueEnqueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student);
-                if (error!=ISRAELIQUEUE_SUCCESS){
-
-                }
-                else{
-                    if(FindPlaceInQueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student)<curr_course->course_size){
-                        success_num++;
-                    }
-                }
-            j++;
-            }
-        }
-        if (success_num<2){
-            hacker_success=false;
-            break;
-        }
-        i++;
-    }
-    if(!hacker_success){
-        char* output1= "Cannot satisfy constraints for ";
-        char* output2= hacker_arr[i]->id;
-            //write Cannot satisfy constraints for <student ID>
-    }
-    else{
-        //write to OUT queue
-    }
-}*/
 
 
 void hackEnrollment(EnrollmentSystem sys, FILE* out){
@@ -527,9 +484,13 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         while (hacker_arr[i]->course_num[j]!=NULL)
         {
             Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
-            if(curr_course==NULL){
 
-            }
+            //adding friendship functions to every course queue
+            IsraeliQueueAddFriendshipMeasure(curr_course->course_queue, HackerFileFriendshipFunction);
+            IsraeliQueueAddFriendshipMeasure(curr_course->course_queue, NameDisFriendshipFunction);
+            IsraeliQueueAddFriendshipMeasure(curr_course->course_queue, IdFriendshipFunction);
+            /*if(curr_course==NULL){
+            }*/
             else{
                 int error=IsraeliQueueEnqueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student);
                 if (error!=ISRAELIQUEUE_SUCCESS){
@@ -541,21 +502,25 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         i++;
     }
 
-    //again a while for the hackers and a while for the courses, this time we check each hacker location in the waiting list
+    //again a while for the hackers and a while for the courses, this time we check each hacker location in the waiting list 
+    //to see if all hackers made it to their desired course
+    //NOTE : check if \n is working correctly
     int i=0;
     while (hacker_arr[i]!=NULL){
         int j=0;
+        int success_num=0;
+
         bool hacker_success=true;
         //this while go over the list of wanted courses for curr hacker and enqueue him to the course_queue.
         while (hacker_arr[i]->course_num[j]!=NULL && hacker_success)
         {
-            int success_num=0;
             int place_in_line=0;
             Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
-            if(curr_course==NULL){
-
-            }
+            /*if(curr_course==NULL){
+                
+            }*/
             else{
+                //try to find hacker in course
                 Course temp_course = IsraeliQueueClone(curr_course);
                 Student temp_student = IsraeliQueueDeueue(temp_course);
                 while (temp_student!=NULL)
@@ -577,11 +542,18 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
             
 
         }
+        
+        int num_of_courses2success = 2;
+        if (j<2){
+            num_of_courses2success = j;
+        }
+        if (success_num<num_of_courses2success){
+            hacker_success = false;
+            break;
+        }
+        
     }
-}
 
-
-    //this was in the previos func and I didnt want to delete it
     if(!hacker_success){
         char* output1= "Cannot satisfy constraints for ";
         char* output2= hacker_arr[i]->id;
@@ -589,4 +561,20 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
     }
     else{
         //write to OUT queue
+        int i=0;
+        Course* course_arr=sys->course_arr;
+        while(course_arr[i]!=NULL){
+            char* line = CourseQueueToString(course_arr[i]);
+            fputs(line,out);
+            fputs('\n',out);
+            i++;
+        }
+
     }
+
+}
+
+
+
+
+    
