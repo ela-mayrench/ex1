@@ -485,7 +485,7 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues){
         }
 
         else{
-            curr_course->course_queue= IsraeliQueueCreate(NULL,CompareById,20,-10);
+            curr_course->course_queue= IsraeliQueueCreate(NULL,CompareById,20,0);
             //for every student in course, add to course queue
             for (int i = 1; i < words_in_line; i++) //start in i=1 because, in arr[0] there is the course number
             {
@@ -529,12 +529,19 @@ int FindNameDistancehAsciiValue(char* name_one, int name_one_len ,char* name_two
     }
 
     int sum=0;
+    bool end = false;
     if(name_one_len>=name_two_len){
         for (int i = 0; i < name_one_len; i++)
         {
-            if(name_two[i]!='\0')
-            {
-                sum+=abs(name_one[i]-name_two[i]);
+            if(!end){
+                if(name_two[i]!='\0')
+                {
+                    sum+=abs(name_one[i]-name_two[i]);
+                }
+                else{
+                    end = true;
+                    sum+=abs(name_one[i]);
+                }
             }
             else{
                 sum+=abs(name_one[i]);
@@ -543,15 +550,22 @@ int FindNameDistancehAsciiValue(char* name_one, int name_one_len ,char* name_two
 
     }
     else{
-        for (int i = 0; i < name_one_len; i++)
+        for (int i = 0; i < name_two_len; i++)
         {
-            if(name_one[i]!='\0')
-            {
-                sum+=abs(name_two[i]-name_one[i]);
+            if(!end){
+                if(name_one[i]!='\0')
+                {
+                    sum+=abs(name_two[i]-name_one[i]);
+                }
+                else{
+                    end = true;
+                    sum+=abs(name_two[i]);
+                }
             }
             else{
                 sum+=abs(name_two[i]);
             }
+
         }
 
     }
@@ -565,27 +579,31 @@ int FindNameDistancehAsciiValue(char* name_one, int name_one_len ,char* name_two
 int HackerFileFriendshipFunction(void* s, void* h){
     Student hacker = (Student)h;
     Student student = (Student)s;
-    if (hacker != NULL && student != NULL ){
-
+    if (hacker != NULL && student != NULL){
         int i = 0;
-        char** temp_friend = hacker->student_as_hacker->friends_id;
-        if(temp_friend != NULL){
-            while (temp_friend[i]!=NULL){
-                if(strcmp(student->id,temp_friend[i])==0){
-                    return 20;
+        if (hacker->student_as_hacker->friends_id[0] != NULL) {
+            char **temp_friend = hacker->student_as_hacker->friends_id;
+            if (temp_friend != NULL) {
+                while (temp_friend[i] != NULL) {
+                    if (strcmp(student->id, temp_friend[i]) == 0) {
+                        return 20;
+                    }
+                    i++;
                 }
-                i++;
             }
         }
 
-        i=0;
-        char** temp_enemy = hacker->student_as_hacker->enemies_id;
-        if(temp_enemy != NULL){
-            while (temp_enemy[i]!=NULL){
-                if(strcmp(student->id,temp_enemy[i])==0){
-                    return -20;
+
+        if(hacker->student_as_hacker->enemies_id[0] != NULL) {
+            i=0;
+            char **temp_enemy = hacker->student_as_hacker->enemies_id;
+            if (temp_enemy != NULL) {
+                while (temp_enemy[i] != NULL) {
+                    if (strcmp(student->id, temp_enemy[i]) == 0) {
+                        return -20;
+                    }
+                    i++;
                 }
-                i++;
             }
         }
     }
@@ -681,6 +699,9 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         while (hacker_arr[i]->course_num[j]!=NULL)
         {
             Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
+            if(curr_course->course_queue == NULL){
+                curr_course->course_queue = IsraeliQueueCreate(NULL,CompareById,20,0);
+            }
 
             //adding friendship functions to every course queue
             IsraeliQueueAddFriendshipMeasure(curr_course->course_queue, HackerFileFriendshipFunction);
@@ -696,9 +717,9 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
             }*/
             //else{
             int error=IsraeliQueueEnqueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student);
-            //if (error!=ISRAELIQUEUE_SUCCESS){
+            if (error!=ISRAELIQUEUE_SUCCESS){
 
-            //}
+            }
                 j++;
             //}
         }
@@ -785,8 +806,3 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
     }
 
 }
-
-
-
-
-

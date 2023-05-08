@@ -75,7 +75,7 @@ IsraeliQueue IsraeliQueueCreate(FriendshipFunction * friendship_func, Comparison
         else{
             queue->friendship_func=NULL;
         }
-            
+
     }
     else{
         queue->friendship_func=NULL;
@@ -91,7 +91,7 @@ IsraeliQueue IsraeliQueueCreate(FriendshipFunction * friendship_func, Comparison
 //our func
 PersonLine PersonLineCreate(void* item){
     PersonLine person = (PersonLine)malloc(sizeof(struct PersonLine_t));
-        printf("malloc: func - PersonLineCreate, value -  PersonLine person \n");
+    printf("malloc: func - PersonLineCreate, value -  PersonLine person \n");
 
     person->item = item;
     person->serial_num = 0;
@@ -128,7 +128,7 @@ void IsraeliQueueDestroy(IsraeliQueue queue){
     printf("PERSONLINE DESTROY\n");
     free(queue);
     printf("free: func - IsraeliQueueDestroy, value - queue\n");
-    
+
 }
 
 
@@ -150,8 +150,8 @@ FriendshipFunction* CopyFuncArray(FriendshipFunction * friendship_func){
 //given func
 IsraeliQueue IsraeliQueueClone(IsraeliQueue q){
     //make new things to put in new queue
-    //FriendshipFunction* new_array = CopyFuncArray(q->friendship_func);
-    IsraeliQueue new_queue = IsraeliQueueCreate(q->friendship_func, q->compare_func, q->friendship_th, q->rivalry_th);
+    FriendshipFunction* new_array = CopyFuncArray(q->friendship_func);
+    IsraeliQueue new_queue = IsraeliQueueCreate(new_array, q->compare_func, q->friendship_th, q->rivalry_th);
     PersonLine original_tmp = q->person;
     //copy person line to new queue
     PersonLine new_person=PersonLineCreate(original_tmp->item);
@@ -184,11 +184,12 @@ int AreFriends(PersonLine person1, PersonLine person2, FriendshipFunction * frie
     int i=0;
     if(friendship_func!=NULL){
         while (friendship_func[i] != NULL){
-            if (friendship_func[i](person1->item,person2->item)>friendship_th){ //if there is one func that says they're friends, end.
+            int friendship_result=friendship_func[i](person1->item,person2->item);
+            if(friendship_result>friendship_th){ //if there is one func that says they're friends, end.
                 return FRIEND;
             }
             else {
-                sum+=friendship_func[i](person1->item,person2->item);
+                sum+=friendship_result;
                 func_num++;
             }
             i++; //continue to next func
@@ -199,7 +200,11 @@ int AreFriends(PersonLine person1, PersonLine person2, FriendshipFunction * frie
         return NUTRAL;
     }
     else{
-        if ((sum/func_num)<rivalry_th){
+        int th=0;
+        if(sum<0){
+            th = -1;
+        }
+        if (((sum/func_num)+th)<rivalry_th){
             return ENEMY;
         }
         else {
@@ -247,7 +252,7 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
         new_person->serial_num = queue_length+1;
     }
 
-
+    //if he is the first person in queue - insert in first place
     if(queue->person==NULL){
         queue->person = new_person;
         return ISRAELIQUEUE_SUCCESS;
@@ -269,7 +274,7 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
             }
 
         }
-        else if (relationship == NUTRAL || temp->friends_num>=MAX_FRIENDS ){
+        else if (relationship == NUTRAL || temp->friends_num>=MAX_FRIENDS ){//no certain relationship or no place for friend to enter person
             temp = temp->next;
             continue;
         }
@@ -287,17 +292,34 @@ IsraeliQueueError IsraeliQueueInsert(IsraeliQueue queue, PersonLine new_person,b
         }
         temp = temp->next;
     }
-    
+
     if(temp!=NULL)
     {
         //if(spot!=NULL&& queue->compare_func(temp,spot)&&temp->serial_num==spot->serial_num){}
-        if(temp->next == NULL && AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th) == FRIEND && spot==NULL){
-            if(temp->friends_num<MAX_FRIENDS){
-                temp->friends_num++;
+        int last_relationship = AreFriends(temp ,new_person,queue->friendship_func, queue->friendship_th, queue->rivalry_th);
+        if(temp->next == NULL && last_relationship == ENEMY ){
+            if(temp->enemy_num < MAX_ENEMIES && found_friend){ //enemy can block
+                found_friend = false;
+                temp->enemy_num++;
+                spot = NULL;
                 temp->next = new_person;
+                return ISRAELI_QUEUE_ERROR;
             }
             else{
                 temp->next = new_person;
+                return ISRAELI_QUEUE_ERROR;
+            }
+        }
+        //if im in the end of the queue snd friends with the last one- add me to his friends
+        else if(temp->next == NULL && last_relationship == FRIEND && spot==NULL){
+            if(temp->friends_num<MAX_FRIENDS){
+                temp->friends_num++;
+                temp->next = new_person;
+                return ISRAELI_QUEUE_ERROR;
+            }
+            else{
+                temp->next = new_person;
+                return ISRAELI_QUEUE_ERROR;
             }
         }
         else{
@@ -393,7 +415,7 @@ void* IsraeliQueueDequeue(IsraeliQueue queue){
         PersonLineDestroy(removed);
         return  temp_item;
     }
-    
+
     return NULL;
 
 }
@@ -406,7 +428,7 @@ bool IsraeliQueueContains(IsraeliQueue queue, void * item){
         if(queue->compare_func(temp->item,item) == SAME){
             return true;
         }
-        temp=temp->next;    
+        temp=temp->next;
     }
     return false;
 }
@@ -452,7 +474,8 @@ IsraeliQueueError IsraeliQueueImprovePositions(IsraeliQueue queue){
             //if person not the same as temp
             temp=temp->next;  //try to compare to the next person in queue
         }
-        PersonLineDestroy(improve_p);
+
+
         //person is not in queue
         if(spot != NULL){
             PersonLine temp2 = spot->next; //save the pointer to after spot
@@ -495,7 +518,6 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* arr_q,ComparisonFunction compare_fu
     while (arr_q[arr_q_size] != NULL){
         arr_q_size++;
     }
-    //arr_q_size++;
     int merged_arr_func_size = 0; //the number of friendship funcs in the array of all queues
 
     //find merged_arr_func_size :
@@ -541,7 +563,6 @@ IsraeliQueue IsraeliQueueMerge(IsraeliQueue* arr_q,ComparisonFunction compare_fu
 
     //create the merged queue
     IsraeliQueue merged_queue = IsraeliQueueCreate(arr_func_merged,compare_func,merged_friendship_th,merged_rivalry_th);
-    free(arr_func_merged);
 
     //create array of personline
     PersonLine* person_line_arr = (PersonLine*)malloc(sizeof(struct PersonLine_t)*arr_q_size); //person line from every queue
