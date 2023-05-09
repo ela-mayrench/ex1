@@ -65,32 +65,57 @@ int CompareById(void* s1,void* s2){
 //creates :
 Student CreateStudent(char* id, int credits, int GPA,char* first_name,char* last_name,char* city, char* department ){
     Student student = (Student)malloc(sizeof(struct Student_t));
+    if(student==NULL){
+        return NULL;
+    }
     int id_len = strlen(id);
     int first_name_len = strlen(first_name);
     int last_name_len = strlen(last_name);
     int city_len = strlen(city);
     int department_len = strlen(department);
 
-    student->id = (char*)malloc(sizeof(char)*id_len);
-    student->first_name = (char*)malloc(sizeof(char)*first_name_len);
-    student->last_name = (char*)malloc(sizeof(char)*last_name_len);
-    student->city = (char*)malloc(sizeof(char)*city_len);
-    student->department = (char*)malloc(sizeof(char)*department_len);
+    student->id = (char*)malloc(sizeof(char)*(id_len+1));
+    if(student->id==NULL){
+        return NULL;
+    }
+    student->first_name = (char*)malloc(sizeof(char)*(first_name_len+1));
+    if(student->first_name==NULL){
+        return NULL;
+    }
+    student->last_name = (char*)malloc(sizeof(char)*(last_name_len+1));
+    if(student->last_name==NULL){
+        return NULL;
+    }
+    student->city = (char*)malloc(sizeof(char)*(city_len+1));
+    if(student->city==NULL){
+        return NULL;
+    }
+    student->department = (char*)malloc(sizeof(char)*(department_len+1));
+    if(student->department==NULL){
+        return NULL;
+    }
 
-    student->id = id;
+
+    strcpy(student->id,id);
     student->credits=credits;
     student->GPA=GPA;
-    student->first_name=first_name;
-    student->last_name=last_name;
-    student->city=city;
-    student->department=department;
+    strcpy(student->first_name,first_name);
+    strcpy(student->last_name,last_name);
+    strcpy(student->city,city);
+    strcpy(student->department,department);
     student->student_as_hacker=NULL;
     return student;
 }
 
 Course CreateCourse(char* course_num, int course_size){
     Course course = (Course)malloc(sizeof(struct Course_t));
-    course->course_num = (char*)malloc(sizeof(char)*strlen(course_num));
+    if(course==NULL){
+        return NULL;
+    }
+    course->course_num = (char*)malloc(sizeof(char)*(strlen(course_num)+1));
+    if(course->course_num==NULL){
+        return NULL;
+    }
 
     strcpy(course->course_num,course_num);
     course->course_size=course_size;
@@ -101,6 +126,9 @@ Course CreateCourse(char* course_num, int course_size){
 
 Hacker CreateHacker(char* id, char** course_num, char** friends_id, char** enemies_id){
     Hacker hacker = (Hacker)malloc(sizeof(struct Hacker_t));
+    if(hacker==NULL){
+        return NULL;
+    }
     int id_len = strlen(id);
     int num_of_courses = 0;
     int num_of_friends = 0;
@@ -109,29 +137,50 @@ Hacker CreateHacker(char* id, char** course_num, char** friends_id, char** enemi
     for (; friends_id[num_of_friends]!= NULL ; num_of_friends++);
     for (; enemies_id[num_of_enemies]!= NULL ; num_of_enemies++);
 
-    hacker->id = (char*)malloc(sizeof(char)*id_len);
+    hacker->id = (char*)malloc(sizeof(char)*(id_len+1));
+    if(hacker->id==NULL){
+        return NULL;
+    }
     hacker->course_num=(char**)malloc(sizeof(char*)*(num_of_courses+1));
+    if(hacker->course_num==NULL){
+        return NULL;
+    }
     hacker->friends_id=(char**)malloc(sizeof(char*)*(num_of_friends+1));
+    if(hacker->friends_id==NULL){
+        return NULL;
+    }
     hacker->enemies_id=(char**)malloc(sizeof(char*)*(num_of_enemies+1));
+    if(hacker->enemies_id==NULL){
+        return NULL;
+    }
     hacker->hacker_as_student=NULL;
 
     //copy array to Hacker struct
     strcpy(hacker->id,id);
 
     for(int i=0; i<num_of_courses; i++){
-        hacker->course_num[i] = (char*)malloc(sizeof(char)*strlen(course_num[i]));
+        hacker->course_num[i] = (char*)malloc(sizeof(char)*(strlen(course_num[i])+1));
+        if(hacker->course_num[i]==NULL){
+        return NULL;
+        }
         strcpy(hacker->course_num[i],course_num[i]);
     }
     hacker->course_num[num_of_courses]=NULL;//null terminated array
 
     for(int i=0; i<num_of_friends; i++){
-        hacker->friends_id[i] = (char*)malloc(sizeof(char)*strlen(friends_id[i]));
+        hacker->friends_id[i] = (char*)malloc(sizeof(char)*(strlen(friends_id[i])+1));
+        if(hacker->friends_id[i]==NULL){
+        return NULL;
+    }
         strcpy(hacker->friends_id[i],friends_id[i]);
     }
     hacker->friends_id[num_of_friends]=NULL;//null terminated array
 
     for(int i=0; i<num_of_enemies; i++){
-        hacker->enemies_id[i] = (char*)malloc(sizeof(char)*strlen(enemies_id[i]));
+        hacker->enemies_id[i] = (char*)malloc(sizeof(char)*(strlen(enemies_id[i])+1));
+        if(hacker->enemies_id[i]==NULL){
+        return NULL;
+    }
         strcpy(hacker->enemies_id[i],enemies_id[i]);
     }
     hacker->enemies_id[num_of_enemies]=NULL;//null terminated array
@@ -162,6 +211,8 @@ void DestroyHacker(Hacker hacker){
     int num_of_courses = 0;
     int num_of_friends = 0;
     int num_of_enemies = 0;
+
+    //count array lengths
     for (; hacker->course_num[num_of_courses]!= NULL ; num_of_courses++);
     for (; hacker->friends_id[num_of_friends]!= NULL ; num_of_friends++);
     for (; hacker->enemies_id[num_of_enemies]!= NULL ; num_of_enemies++);
@@ -205,24 +256,33 @@ char** SplitStr(char* line){
     int len = strlen(line);//length of the string
     int word_counter = CountWordsInLine(line);
     if(strcmp(line,"\n")==0){
-        char** arr = malloc(sizeof(char*));
+        char** arr = malloc(sizeof(char*)); //if there is only '\n'
+        if(arr==NULL){
+            return NULL;
+        }
         arr[0] = NULL;
         return arr;
     }
     char** arr = malloc(sizeof(char*)*(word_counter+1));//create an array of words the size of word_counter
+    if(arr==NULL){
+            return NULL;
+        }
+
     int begin=0;//beginning of every word
     int put=0;//where to put each word in word array
     for (int i = 0; i < len; ++i) {
         if(line[i]==' ' || line[i]=='\n'){
             int size = i-begin;
-            char * temp = malloc(sizeof(char)*(size));//current word
+            arr[put] = malloc(sizeof(char)*(size+1));//current word
+            if(arr[put]==NULL){
+                return NULL;
+            }
             int loc=0;//where to put each letter in current word
             for (int j = begin; j < i; ++j) {
-                temp[loc]=line[j];
+                arr[put][loc]=line[j];
                 loc++;
             }
-            temp[i-begin]='\0';
-            arr[put]=temp;
+            arr[put][i-begin]='\0';
             put++;
             begin=i+1;
         }
@@ -233,13 +293,27 @@ char** SplitStr(char* line){
 
 Student FromLineToStudent (char* line){
     char** arr = SplitStr(line);
+    if(arr==NULL){
+        return NULL;
+    }
     Student student = CreateStudent(arr[0],atoi(arr[1]), atoi(arr[2]),arr[3],arr[4],arr[5],arr[6]);
+    for (int i = 0; i < 7; ++i) {
+        free(arr[i]);
+    }
+    free(arr);
     return student;
 }
 
 Course FromLineToCourse (char* line){
     char** arr = SplitStr(line);
+    if(arr==NULL){
+        return NULL;
+    }
     Course course = CreateCourse(arr[0],atoi(arr[1])); //dont forget!! remove the atoi and build a cast function
+    for (int i = 0; i < 2; ++i) {
+        free(arr[i]);
+    }
+    free(arr);
     return course;
 }
 
@@ -291,6 +365,9 @@ Student* ReadStudentFile(FILE* students){
     int row_num = FindRowNum(students);
     int max_row_length = FindMaxRowLength(students);
     Student* student_arr = (Student*)malloc(sizeof(struct Student_t)*(row_num+1));
+    if(student_arr==NULL){
+            return NULL;
+        }
     //
     char line[max_row_length];
     int i=0;
@@ -317,10 +394,16 @@ Hacker* ReadHackerFile(FILE* hackers){
     //every hacker has 4 rowes to describe him
     int hacker_num = row_num/4;
     Hacker* hacker_arr = (Hacker*)malloc(sizeof(struct Hacker_t)*(hacker_num+1));
+    if(hacker_arr==NULL){
+            return NULL;
+        }
 
     char line[max_row_length];
     for(int curr_hacker=0; curr_hacker<hacker_num;curr_hacker++){
         char* new_id = (char*)malloc(sizeof(char)*max_row_length);
+        if(new_id==NULL){
+            return NULL;
+        }
         char** new_course_num;
         char** new_friends_id;
         char** new_enemies_id;
@@ -329,29 +412,51 @@ Hacker* ReadHackerFile(FILE* hackers){
             switch(hacker_line){
                 case 0:{
                     char** temp_line = SplitStr(line);
+                    if(temp_line==NULL){
+                        return NULL;
+                    }
                     strcpy(new_id,temp_line[0]);
+                    free(temp_line[0]);
                     free(temp_line);
                     break;
                 }
                 case 1:
                 {
                     new_course_num = SplitStr(line);
+                    if(new_course_num==NULL){
+                        return NULL;
+                    }
                     break;
                 }
 
                 case 2:
                     new_friends_id = SplitStr(line);
+                    if(new_friends_id==NULL){
+                        return NULL;
+                    }
                     break;
                 case 3:
                     new_enemies_id = SplitStr(line);
+                    if(new_enemies_id==NULL){
+                        return NULL;
+                    }
                     break;
             }
         }
         Hacker new_hacker = CreateHacker(new_id,new_course_num,new_friends_id,new_enemies_id);
         hacker_arr[curr_hacker]=new_hacker;
         free(new_id);
+        for (int i = 0; new_course_num[i]!=NULL ; ++i) {
+            free(new_course_num[i]);
+        }
         free(new_course_num);
+        for (int i = 0; new_friends_id[i]!=NULL ; ++i) {
+            free(new_friends_id[i]);
+        }
         free(new_friends_id);
+        for (int i = 0; new_enemies_id[i]!=NULL ; ++i) {
+            free(new_enemies_id[i]);
+        }
         free(new_enemies_id);
     }
     hacker_arr[hacker_num] = NULL;
@@ -364,6 +469,9 @@ Course* ReadCourseFile(FILE* courses_file){
     int row_num = FindRowNum(courses_file);
     int max_row_length = FindMaxRowLength(courses_file);
     Course* course_arr = (Course*)malloc(sizeof(struct Course_t)*(row_num+1));
+    if(course_arr==NULL){
+            return NULL;
+        }
     //
     char line[max_row_length];
     int i=0;
@@ -385,7 +493,7 @@ Student FindStudentInSys(EnrollmentSystem sys, char* student_id){
         return NULL;
     }
     int i = 0;
-    while(sys->student_arr!=NULL){
+    while(sys->student_arr[i]!=NULL){
         Student temp_student = sys->student_arr[i];
         if(strcmp(temp_student->id,student_id)==0){
             return temp_student;
@@ -396,25 +504,43 @@ Student FindStudentInSys(EnrollmentSystem sys, char* student_id){
 }
 
 Course FindCourseInSys(EnrollmentSystem sys, char* course_num){
+    printf("FCIS %s \n",course_num);
     if(sys == NULL){
+        printf("sys==NULL\n");
         return NULL;
     }
+    
+    if (sys->course_arr == NULL){
+        printf("sys->course_arr==NULL\n");
+        return NULL;
+    }
+
     int i = 0;
-    while(sys->course_arr!=NULL){
-        Course temp_course = sys->course_arr[i];
-        if(strcmp(temp_course->course_num,course_num)==0){
-            return temp_course;
+    while(sys->course_arr[i]!=NULL){
+        printf("compare to %s %s\n",sys->course_arr[i]->course_num,course_num);
+        //Course temp_course = sys->course_arr[i];
+        if(strcmp(sys->course_arr[i]->course_num,course_num)==0){
+            return sys->course_arr[i];
         }
         i++;
     }
+    printf("return NULL\n");
     return NULL;
 
 }
 
 EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers){
     EnrollmentSystem sys = (EnrollmentSystem)malloc(sizeof(struct EnrollmentSystem_t));
-
+    if(sys==NULL){
+        printf("535\n");
+        return NULL;
+    }
     Student* student_arr=ReadStudentFile(students);
+    if(student_arr == NULL){
+        free(sys);
+        printf("541\n");
+        return NULL;
+    }
     Course* course_arr=ReadCourseFile(courses);
     Hacker* hacker_arr=ReadHackerFile(hackers);
     sys->flag = false;
@@ -433,6 +559,7 @@ EnrollmentSystem createEnrollment(FILE* students, FILE* courses, FILE* hackers){
         i++;
     }
 
+    //point at existing arrays (mallocs done in read file, free in destroy)
     sys->student_arr=student_arr;
     sys->course_arr=course_arr;
     sys->hacker_arr=hacker_arr;
@@ -477,31 +604,57 @@ EnrollmentSystem readEnrollment(EnrollmentSystem sys, FILE* queues){
     while(fgets(line,max_row_length,queues) !=NULL){
         int words_in_line = CountWordsInLine(line);
         line_in_arr = SplitStr(line);
-
+        if(line_in_arr==NULL){
+            printf("608\n");
+            return NULL;
+        }
+        printf("read enrollment 1\n");
         //for course
         Course curr_course = FindCourseInSys(sys,line_in_arr[0]);
         if(curr_course == NULL){
+            for (int i = 0; line_in_arr[i]!=NULL ; ++i) {
+                free(line_in_arr[i]);
+            }
+            free(line_in_arr);
+            printf("619\n");
             return NULL;
         }
-
         else{
             curr_course->course_queue= IsraeliQueueCreate(NULL,CompareById,20,0);
             //for every student in course, add to course queue
             for (int i = 1; i < words_in_line; i++) //start in i=1 because, in arr[0] there is the course number
             {
+                printf("read enrollment 2\n");
                 Student curr_student = FindStudentInSys(sys,line_in_arr[i]);
                 if(curr_student==NULL){
+                    for (int i = 0; line_in_arr[i]!=NULL ; ++i) {
+                        free(line_in_arr[i]);
+                    }
+                    free(line_in_arr);
+                    printf("633\n");
                     return NULL;
                 }
                 else{
+                    printf("read enrollment 3\n");
                     int error = IsraeliQueueEnqueue(curr_course->course_queue,curr_student);
                     if(error!=ISRAELIQUEUE_SUCCESS){
+                        for (int i = 0; line_in_arr[i]!=NULL ; ++i) {
+                            free(line_in_arr[i]);
+                        }
+                        free(line_in_arr);
+                        printf("643\n");
                         return NULL;
                     }
                 }
             }
         }
+        printf("free line_in_arr 650\n");
+        for (int i = 0; line_in_arr[i]!=NULL ; ++i) {
+            free(line_in_arr[i]);
+        }
+        free(line_in_arr);
     }
+    
     return sys;
 }
 
@@ -668,7 +821,11 @@ char* CourseQueueToString(Course course){
     //line_str_len++;//another spot for \n
     IsraeliQueueDestroy(temp_queue1);
 
-    char* str_line = (char*)malloc(sizeof(char)*line_str_len);
+    char* str_line = (char*)malloc(sizeof(char)*(line_str_len+1));
+    if(str_line==NULL){
+        printf("822\n");
+        return NULL;
+    }
     IsraeliQueue temp_queue2 = IsraeliQueueClone(course->course_queue);
     strcpy(str_line,course->course_num);
     int str_location=strlen(course->course_num);
@@ -698,7 +855,17 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         //this while go over the list of wanted courses for curr hacker and enqueue him to the course_queue.
         while (hacker_arr[i]->course_num[j]!=NULL)
         {
+            printf("course num %s\n: ",hacker_arr[i]->course_num[j]);
             Course curr_course=FindCourseInSys(sys,hacker_arr[i]->course_num[j]);
+            //printf("course num %s\n: ",curr_course->course_num);
+            //THIS WAS THE PROBLEM!!
+            ////////////////////
+            if(curr_course==NULL){
+                printf("860\n");
+                printf("i: %d, j: %d\n",i,j);
+                return;
+            }
+            ////////////////////
             if(curr_course->course_queue == NULL){
                 curr_course->course_queue = IsraeliQueueCreate(NULL,CompareById,20,0);
             }
@@ -718,9 +885,10 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
             //else{
             int error=IsraeliQueueEnqueue(curr_course->course_queue,hacker_arr[i]->hacker_as_student);
             if (error!=ISRAELIQUEUE_SUCCESS){
-
+                printf("884\n");
+                return;
             }
-                j++;
+            j++;
             //}
         }
         i++;
@@ -740,13 +908,14 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         {
             int place_in_line=0;
             Course curr_course=FindCourseInSys(sys,hacker_arr[k]->course_num[j]);
-            /*if(curr_course==NULL){
-
+             /*if(curr_course==NULL){
+                return;
             }*/
             //else{
             //try to find hacker in course
             IsraeliQueue temp_course_queue = IsraeliQueueClone(curr_course->course_queue);
             Student temp_student = IsraeliQueueDequeue(temp_course_queue);
+            //compare student to hacker - in order to find hacker in queue
             while (temp_student!=NULL)
             {
                 if(strcmp(temp_student->id,hacker_arr[k]->hacker_as_student->id)!=0)
@@ -765,7 +934,7 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
             }
             //}
             j++;
-            IsraeliQueueDequeue(temp_course_queue);
+            IsraeliQueueDestroy(temp_course_queue);
         }
 
         int num_of_courses2success = 2;
@@ -796,8 +965,10 @@ void hackEnrollment(EnrollmentSystem sys, FILE* out){
         while(course_arr[i]!=NULL){
             if(course_arr[i]->course_queue!=NULL){
                 char* line = CourseQueueToString(course_arr[i]);
+                printf("fputs");
                 fputs(line,out);
                 fputc('\n',out);
+                free(line);
 
             }
             i++;
