@@ -1,0 +1,19 @@
+CC = gcc
+CFLAGS = -std=c99 -o HackEnrollment -lm -I/home/mtm/public/2223b/ex1 -Itool -Wall -pedantic-errors -Werror -DNDEBUG *.c tool/*.c
+OBJS = IsraeliQueue.o HackEnrollment.o main.o
+EXEC = HackEnrollment
+
+program: IsraeliQueue.o HackEnrollment.o main.o
+	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC)
+
+main.o: IsraeliQueue.h HackEnrollment.h main.c 
+	$(CC) $(CFLAGS) -c main.c
+
+HackEnrollment.o: HackEnrollment.c HackEnrollment.h 
+	$(CC) $(CFLAGS) -c HackEnrollment.c
+
+IsraeliQueue.o: IsraeliQueue.c IsraeliQueue.h
+	$(CC) $(CFLAGS) -c IsraeliQueue.c
+ 
+ clean:
+	rm -f $(OBJS) $(EXEC)
