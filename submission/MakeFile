@@ -1,0 +1,20 @@
+VPATH = /new_home/courses/mtm/public/2223b/ex1
+EXEC = HackEnrollment
+OBJS = IsraeliQueue.o HackEnrollment.o main.o
+CC = gcc
+CFLAGS = -std=c99 -I/new_home/courses/mtm/public/2223b/ex1 -Itool -Wall -pedantic-errors -Werror -DNDEBUG
+
+program: $(OBJS)
+	$(CC) $(CFLAGS) $(OBJS) -o $(EXEC) -lm
+
+main.o: ./tool/main.c ./tool/HackEnrollment.h IsraeliQueue.h   
+	$(CC) -c $(CFLAGS) $<
+
+HackEnrollment.o: ./tool/HackEnrollment.c ./tool/HackEnrollment.h IsraeliQueue.h
+	$(CC) -c $(CFLAGS) ./tool/$*.c
+
+IsraeliQueue.o: IsraeliQueue.c IsraeliQueue.h
+	$(CC) -c $(CFLAGS) $*.c
+ 
+clean:
+	rm -f $(OBJS) $(EXEC)
